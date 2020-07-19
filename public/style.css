@@ -18,6 +18,19 @@ body {
     height: 100%;
 }
 
+#full {
+    width: 100%;
+}
+
+#half {
+    box-sizing: border-box;
+    width: 50%;
+    float: left;
+    text-align: center;
+    font-weight: 700;
+    font-size: large;
+}
+
 #mynetwork {
     width: 50%;
     height: 100%;
