@@ -1,3 +1,5 @@
+
+
 onload = function() {
     // create a network
     var curr_data;
@@ -18,16 +20,16 @@ onload = function() {
             }
         },
         nodes: {
-            font: '12px arial #1c36d3',
+            font: '12px arial red',
             scaling: {
                 label: true
             },
             shape: 'icon',
             icon: {
                 face: 'FontAwesome',
-                code: '\uf406',
-                size: 30, //50,
-                color: 'red',
+                code: '\uf183',
+                size: 50,
+                color: '#991133',
             }
         }
     };
@@ -41,7 +43,7 @@ onload = function() {
         sz = Math.floor(Math.random() * 8) + 2;
         nodes = [];
         for (i = 1; i <= sz; i++) {
-            nodes.push({ id: i, label: "Person " + i })
+            nodes.push({ id: i, label: "Person " + i})
         }
         nodes = new vis.DataSet(nodes);
 
@@ -81,6 +83,8 @@ onload = function() {
         data = curr_data;
         sz = data['nodes'].length;
         vals = Array(sz).fill(0);
+
+        //Calculating the contribution of each person
         for (i = 0; i < data['edges'].length; i++) {
             edge = data['edges'][i];
             vals[edge['to'] - 1] += parseInt(edge['label']);
@@ -90,24 +94,46 @@ onload = function() {
             console.log(vals[i]);
         console.log('\n');
 
-        new_edges = [];
-        for (i = 0; i < sz; i++) {
-            if (vals[i] > 0) {
-                for (j = 0; j < sz && vals[i] > 0; j++) {
-                    if (vals[j] < 0) {
-                        if (vals[j] + vals[i] >= 0) {
-                            new_edges.push({ from: j + 1, to: i + 1, label: String(Math.abs(vals[j])) });
-                            vals[i] += vals[j];
-                            vals[j] = 0;
-                        } else {
-                            new_edges.push({ from: j + 1, to: i + 1, label: String(vals[i]) });
-                            vals[j] += vals[i];
-                            vals[i] = 0;
-                        }
-                    }
-                }
+        const pos_heap=new BinaryHeap();
+        const neg_heap=new BinaryHeap();
+
+        for(let i=0;i<sz;i++){
+            if(vals[i]>0){
+                pos_heap.insert([vals[i],i]);
+            }else if(vals[i]<0){
+                neg_heap.insert(([-vals[i],i]));
+                vals[i] *= -1;
+
+
             }
         }
+        const new_edges=[];
+        while(!pos_heap.empty()){
+            const mx = pos_heap.extractMax();
+            const mn = neg_heap.extractMax();
+
+            const amt=Math.min(mx[0],mn[0]);
+            const to=mx[1];
+            const from=mn[1];
+
+            new_edges.push({from: from+1, to: to+1, label: String(amt)});
+
+            vals[to]-=amt;
+            vals[from]-=amt;
+            if(mx[0] > mn[0]){
+                pos_heap.insert([vals[to],to]);
+            } else if(mx[0] < mn[0]){
+                neg_heap.insert([vals[from],from]);
+            }
+
+
+
+
+
+        }
+
+
+        
 
         data = {
             nodes: data['nodes'],
